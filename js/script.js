@@ -1,5 +1,8 @@
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
+const displayPlayerScore = document.querySelector(".player");
+const displayAiScore = document.querySelector(".ai");
+const buttonRestart = document.querySelector(".restart");
 
 canvas.width = 700;
 canvas.height = 500;
@@ -7,6 +10,8 @@ canvas.height = 500;
 let boardWidth = canvas.width;
 let playerScore = 0;
 let aiScore = 0;
+const difficulty = 0.2;
+const ballSpeed = 2;
 
 const ballMoves = gameBalls => {
   gameBalls.forEach(ball => {
@@ -24,6 +29,26 @@ const screenRefresher = () => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 
+const controlWithKeyboard = e => {
+  console.log(e.keyCode);
+  if (e.keyCode === 87) playerPaddle.moveUp(collObjects);
+  else if (e.keyCode === 83) playerPaddle.moveDown(collObjects);
+};
+
+const updateScore = () => {
+  displayPlayerScore.textContent = playerScore;
+  displayAiScore.textContent = aiScore;
+};
+
+const gameReset = () => {
+  clearInterval(play);
+  playerScore = aiScore = 0;
+  gameBalls.forEach(ball => {
+    ball.restartBall();
+  });
+  play = setInterval(game, 1000 / 60);
+};
+
 class Paddle {
   constructor(width, height, posX, posY, color) {
     this.width = width;
@@ -34,6 +59,14 @@ class Paddle {
     this.speed = 4;
     this.middleHeight = height / 2;
   }
+
+  moveUp = collObjects => {
+    this.posY -= this.speed;
+  };
+
+  moveDown = collObjects => {
+    this.posY += this.speed;
+  };
 }
 
 class Ball {
@@ -44,11 +77,20 @@ class Ball {
     this.posX = posX;
     this.posY = posY;
     this.middleHeight = size / 2;
-    this.speedX = 2;
-    this.speedY = 2;
+    this.speedX = ballSpeed;
+    this.speedY = ballSpeed;
     this.directionX = true;
     this.directionY = true;
   }
+
+  restartBall = () => {
+    if (Math.round(Math.random())) this.directionX = !this.directionX;
+    if (Math.round(Math.random())) this.directionY = !this.directionY;
+    this.speedX = ballSpeed;
+    this.speedY = ballSpeed;
+    this.posX = canvas.width / 2 - this.width / 2;
+    this.posY = canvas.height / 2 - this.height / 2;
+  };
 
   moveBall = collObject => {
     let collision = 0;
@@ -224,15 +266,15 @@ class Ball {
     }
     if (collision) {
       if (Math.round(Math.random()))
-        this.speedX += Math.round(Math.random()) / 8;
-      else this.speedY += Math.round(Math.random()) / 10;
+        this.speedX += difficulty + Math.round(Math.random()) / 8;
+      else this.speedY += difficulty + Math.round(Math.random()) / 10;
       if (collision == 1) {
         this.directionX = !this.directionX;
         if (Math.round(Math.random())) this.directionY = !this.directionY;
       } else if (collision == 2) {
         this.directionY = !this.directionY;
       } else {
-        //this.restartBall();
+        this.restartBall();
       }
     } else {
       if (this.directionX) this.posX += this.speedX;
@@ -260,7 +302,7 @@ const gameBalls = [];
 
 const playerPaddle = new Paddle(20, 120, 10, 50, "blue");
 const aiPaddle = new Paddle(20, 120, canvas.width - 30, 100, "orange");
-const ball = new Ball(30, canvas.width / 2 - 4, canvas.height / 2 - 4, "green");
+const ball = new Ball(10, canvas.width / 2 - 4, canvas.height / 2 - 4, "green");
 
 collObjects.push(playerPaddle, aiPaddle, ball);
 gameBalls.push(ball);
@@ -268,8 +310,12 @@ gameBalls.push(ball);
 const game = () => {
   if (boardWidth !== canvas.width) changeBoardSize();
   screenRefresher();
-  drawObject(collObjects, ctx);
   ballMoves(gameBalls);
+  updateScore();
+  drawObject(collObjects, ctx);
+  if (playerScore == 15 || aiScore == 15) clearInterval(play);
 };
 
+buttonRestart.addEventListener("click", gameReset);
+window.addEventListener("keydown", controlWithKeyboard);
 let play = setInterval(game, 1000 / 60);
