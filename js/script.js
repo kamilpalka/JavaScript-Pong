@@ -3,15 +3,36 @@ const ctx = canvas.getContext("2d");
 const displayPlayerScore = document.querySelector(".player");
 const displayAiScore = document.querySelector(".ai");
 const buttonRestart = document.querySelector(".restart");
+const moreBalls = document.querySelector(".ball");
+const lessBalls = document.querySelector(".less");
 
-canvas.width = 700;
+canvas.width = 1000;
 canvas.height = 500;
 
 let boardWidth = canvas.width;
 let playerScore = 0;
 let aiScore = 0;
-const difficulty = 0.2;
-const ballSpeed = 2;
+let setScore = 25;
+let multi = false;
+let difficulty = 0.2;
+let ballSpeed = 2;
+let paddleSpeed = 8;
+
+const addBalls = () => {
+  const ball = new Ball(
+    15,
+    canvas.width / 2 - 4,
+    canvas.height / 2 - 4,
+    "white"
+  );
+  collObjects.push(ball);
+  gameBalls.push(ball);
+};
+
+const removeBall = () => {
+  if (collObjects.length > 3) collObjects.pop();
+  if (gameBalls.length > 1) gameBalls.pop();
+};
 
 const ballMoves = gameBalls => {
   gameBalls.forEach(ball => {
@@ -30,9 +51,12 @@ const screenRefresher = () => {
 };
 
 const controlWithKeyboard = e => {
-  console.log(e.keyCode);
-  if (e.keyCode === 87) playerPaddle.moveUp(collObjects);
-  else if (e.keyCode === 83) playerPaddle.moveDown(collObjects);
+  if (e.keyCode === 87) playerPaddle.moveUp(gameBalls);
+  if (e.keyCode === 83) playerPaddle.moveDown(gameBalls);
+  if (multi) {
+    if (e.keyCode === 38) aiPaddle.moveUp(gameBalls);
+    if (e.keyCode === 40) aiPaddle.moveDown(gameBalls);
+  }
 };
 
 const updateScore = () => {
@@ -56,16 +80,97 @@ class Paddle {
     this.posX = posX;
     this.posY = posY;
     this.color = color;
-    this.speed = 4;
+    this.speed = paddleSpeed;
     this.middleHeight = height / 2;
   }
 
-  moveUp = collObjects => {
-    this.posY -= this.speed;
+  aiMove = gameBalls => {
+    let closest = canvas.width;
+    let closestCount;
+    let temp;
+    for (let i = 0; i < gameBalls.length; i++) {
+      if (this.posX < gameBalls[i].posX) {
+        temp = this.posX - gameBalls[i].posX;
+      } else {
+        temp = gameBalls[i].posX - this.posX;
+      }
+      if (closest > temp) {
+        closest = temp;
+        closestCount = i;
+      }
+    }
+    if (
+      this.posY + this.middleHeight >
+      gameBalls[closestCount].posY + gameBalls[closestCount].middleHeight
+    ) {
+      this.moveUp(gameBalls);
+    } else {
+      this.moveDown(gameBalls);
+    }
   };
 
-  moveDown = collObjects => {
-    this.posY += this.speed;
+  moveUp = gameBalls => {
+    const paddleTop = this.posY;
+    const paddleLeft = this.posX;
+    const paddleRight = this.posX + this.width;
+    let ballBottom;
+    let ballLeft;
+    let ballRight;
+    let collision = false;
+
+    for (let i = 0; i < gameBalls.length; i++) {
+      ballBottom = gameBalls[i].posY + gameBalls[i].height;
+      ballLeft = gameBalls[i].posX;
+      ballRight = gameBalls[i].posX + gameBalls[i].width;
+
+      if (
+        ((paddleLeft <= ballLeft && ballLeft <= paddleRight) ||
+          (paddleLeft <= ballRight && ballRight <= paddleRight)) &&
+        (paddleTop >= ballBottom && paddleTop - this.speed <= ballBottom)
+      ) {
+        this.posY = ballBottom;
+        collision = !collision;
+        break;
+      } else if (paddleTop - this.speed < 0) {
+        this.posY = 0;
+        collision = !collision;
+        break;
+      }
+    }
+
+    if (!collision) this.posY -= this.speed;
+  };
+
+  moveDown = gameBalls => {
+    const paddleBottom = this.posY + this.height;
+    const paddleLeft = this.posX;
+    const paddleRight = this.posX + this.width;
+    let ballTop;
+    let ballLeft;
+    let ballRight;
+    let collision = false;
+
+    for (let i = 0; i < gameBalls.length; i++) {
+      ballTop = gameBalls[i].posY;
+      ballLeft = gameBalls[i].posX;
+      ballRight = gameBalls[i].posX + gameBalls[i].width;
+
+      if (
+        ((paddleLeft <= ballLeft && ballLeft <= paddleRight) ||
+          (paddleLeft <= ballRight && ballRight <= paddleRight)) &&
+        (paddleBottom <= ballTop && paddleBottom + this.speed >= ballTop)
+      ) {
+        this.posY = ballTop - this.height;
+        collision = !collision;
+        break;
+      } else if (paddleBottom + this.speed > canvas.height) {
+        this.posY = canvas.height - this.height;
+        collision = !collision;
+        break;
+      }
+    }
+
+    if (!collision) this.posY += this.speed;
   };
 }
 
@@ -300,9 +405,9 @@ const drawObject = (collObjects, context) => {
 const collObjects = [];
 const gameBalls = [];
 
-const playerPaddle = new Paddle(20, 120, 10, 50, "blue");
-const aiPaddle = new Paddle(20, 120, canvas.width - 30, 100, "orange");
-const ball = new Ball(10, canvas.width / 2 - 4, canvas.height / 2 - 4, "green");
+const playerPaddle = new Paddle(18, 110, 10, 50, "red");
+const aiPaddle = new Paddle(18, 110, canvas.width - 30, 100, "blue");
+const ball = new Ball(15, canvas.width / 2 - 4, canvas.height / 2 - 4, "white");
 
 collObjects.push(playerPaddle, aiPaddle, ball);
 gameBalls.push(ball);
@@ -311,11 +416,14 @@ const game = () => {
   if (boardWidth !== canvas.width) changeBoardSize();
   screenRefresher();
   ballMoves(gameBalls);
+  if (!multi) aiPaddle.aiMove(gameBalls);
   updateScore();
   drawObject(collObjects, ctx);
-  if (playerScore == 15 || aiScore == 15) clearInterval(play);
+  if (playerScore == setScore || aiScore == setScore) clearInterval(play);
 };
 
 buttonRestart.addEventListener("click", gameReset);
+moreBalls.addEventListener("click", addBalls);
+lessBalls.addEventListener("click", removeBall);
 window.addEventListener("keydown", controlWithKeyboard);
 let play = setInterval(game, 1000 / 60);

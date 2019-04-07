@@ -15,11 +15,11 @@ body {
   justify-content: center;
   flex-direction: column;
   align-items: center;
-  background-color: #000;
+  background-color: rgb(15, 12, 12);
 }
 
 .table {
-  color: white;
+  color: gray;
   display: flex;
   justify-content: center;
   border: 2px solid white;
@@ -28,7 +28,7 @@ body {
 .player,
 .ai {
   text-align: center;
-  color: green;
+  color: darkgray;
   flex-basis: 20%;
 }
 
@@ -54,8 +54,8 @@ button {
   margin: 8px;
   padding: 5px;
   color: black;
-  background-color: #fff;
-  border: 2px red solid;
+  background-color: rgb(221, 210, 210);
+  border: 2px grey solid;
   text-transform: uppercase;
 }
 
