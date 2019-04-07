@@ -2,7 +2,7 @@
 
 ## This is my first project with canvas  
 
-Repository link - https://kamilpalka.github.io/JavaScript-Pong/  
+Game link - https://kamilpalka.github.io/JavaScript-Pong/  
 
 ## Available settings   
 Just write in console one of below:  
