@@ -84,7 +84,7 @@ class Paddle {
     this.middleHeight = height / 2;
   }
 
-  aiMove = gameBalls => {
+  aiMove(gameBalls) {
     let closest = canvas.width;
     let closestCount;
     let temp;
@@ -107,9 +107,9 @@ class Paddle {
     } else {
       this.moveDown(gameBalls);
     }
-  };
+  }
 
-  moveUp = gameBalls => {
+  moveUp(gameBalls) {
     const paddleTop = this.posY;
     const paddleLeft = this.posX;
     const paddleRight = this.posX + this.width;
@@ -139,9 +139,9 @@ class Paddle {
     }
 
     if (!collision) this.posY -= this.speed;
-  };
+  }
 
-  moveDown = gameBalls => {
+  moveDown(gameBalls) {
     const paddleBottom = this.posY + this.height;
     const paddleLeft = this.posX;
     const paddleRight = this.posX + this.width;
@@ -171,7 +171,7 @@ class Paddle {
     }
 
     if (!collision) this.posY += this.speed;
-  };
+  }
 }
 
 class Ball {
@@ -188,16 +188,16 @@ class Ball {
     this.directionY = true;
   }
 
-  restartBall = () => {
+  restartBall() {
     if (Math.round(Math.random())) this.directionX = !this.directionX;
     if (Math.round(Math.random())) this.directionY = !this.directionY;
     this.speedX = ballSpeed;
     this.speedY = ballSpeed;
     this.posX = canvas.width / 2 - this.width / 2;
     this.posY = canvas.height / 2 - this.height / 2;
-  };
+  }
 
-  moveBall = collObject => {
+  moveBall(collObject) {
     let collision = 0;
     const ballLeft = this.posX;
     const ballRight = this.posX + this.width;
@@ -387,7 +387,7 @@ class Ball {
       if (this.directionY) this.posY += this.speedY;
       else this.posY -= this.speedY;
     }
-  };
+  }
 }
 
 const drawObject = (collObjects, context) => {
@@ -416,7 +416,8 @@ const game = () => {
   if (boardWidth !== canvas.width) changeBoardSize();
   screenRefresher();
   ballMoves(gameBalls);
-  if (!multi) aiPaddle.aiMove(gameBalls);
+  // if (!multi)
+  aiPaddle.aiMove(gameBalls);
   updateScore();
   drawObject(collObjects, ctx);
   if (playerScore == setScore || aiScore == setScore) clearInterval(play);
