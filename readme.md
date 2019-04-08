@@ -1,10 +1,10 @@
-### JavaScript Pong with Canvas  
+## JavaScript Pong with Canvas  
 
-## This is my first project with canvas  
+### This is my first project with canvas  
 
 Game link - https://kamilpalka.github.io/JavaScript-Pong/  
 
-## Available settings   
+### Available settings   
 Just write in console one of below:  
   
 boardWidth - determines canvas width,  
